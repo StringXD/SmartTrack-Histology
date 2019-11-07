@@ -1,0 +1,27 @@
+input = getDirectory("Choose the Source Directory");
+
+listDirs = getFileList(input);
+for (i=0; i<listDirs.length; i++) {
+	dir = substring(listDirs[i], 0, lengthOf(listDirs[i])-1);
+	list = getFileList(input+"\\"+dir);
+	for (j=0; j<list.length; j++) {
+		if (!endsWith(list[j], "/") && list[j] != "Image.vsi") {
+           run("Bio-Formats Importer", "open=["+input+"\\"+dir+"\\"+list[j]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_4");
+           filename = substring(list[j], 0, lengthOf(list[j])-4);
+		   rename("A");
+           run("Split Channels");
+           selectWindow("C1-A");
+           setMinAndMax(0, 4000);
+           run("Apply LUT");
+           selectWindow("C2-A");
+           setMinAndMax(0, 20000);
+           run("Apply LUT");
+           run("Merge Channels...", "c3=C2-A c6=C1-A create");
+           run("Stack to RGB");
+           selectWindow("Composite");
+           close();
+           selectWindow("Composite (RGB)");
+           saveAs("Tiff", input+"\\"+dir+"\\"+filename+".tif"); run("Close All");
+		}
+	}
+}
