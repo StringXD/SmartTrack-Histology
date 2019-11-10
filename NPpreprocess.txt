@@ -4,8 +4,19 @@ listDirs = getFileList(input);
 for (i=0; i<listDirs.length; i++) {
 	dir = substring(listDirs[i], 0, lengthOf(listDirs[i])-1);
 	list = getFileList(input+"\\"+dir);
+    overview = 0;
+    for (iter=0; iter<list.length; iter++){
+        if (list[iter] == "Image_Overview.vsi") {
+            overview = 1;
+        }
+    }
+    if (overview == 1) {
+        overviewName = "Image_Overview.vsi";
+    } else {
+        overviewName = "Image.vsi";
+    }
 	for (j=0; j<list.length; j++) {
-		if (!endsWith(list[j], "/") && list[j] != "Image.vsi") {
+		if (!endsWith(list[j], "/") && list[j] != overviewName) {
            run("Bio-Formats Importer", "open=["+input+"\\"+dir+"\\"+list[j]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_1");
            filename = substring(list[j], 0, lengthOf(list[j])-4);
            w = getWidth/5;
