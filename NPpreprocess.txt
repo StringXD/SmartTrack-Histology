@@ -6,9 +6,14 @@ for (i=0; i<listDirs.length; i++) {
 	list = getFileList(input+"\\"+dir);
 	for (j=0; j<list.length; j++) {
 		if (!endsWith(list[j], "/") && list[j] != "Image.vsi") {
-           run("Bio-Formats Importer", "open=["+input+"\\"+dir+"\\"+list[j]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_4");
+           run("Bio-Formats Importer", "open=["+input+"\\"+dir+"\\"+list[j]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_1");
            filename = substring(list[j], 0, lengthOf(list[j])-4);
-		   rename("A");
+           w = getWidth/5;
+           h = getHeight/5;
+           run("Size...", "width=w height=h depth=2 constrain average interpolation=Bilinear");
+           rename("A");
+           getPixelSize(unit, pw, ph, pd);
+           umpxratio = round(pw*100)/100;
            run("Split Channels");
            selectWindow("C1-A");
            setMinAndMax(0, 4000);
@@ -20,8 +25,7 @@ for (i=0; i<listDirs.length; i++) {
            run("Stack to RGB");
            selectWindow("Composite");
            close();
-           selectWindow("Composite (RGB)");
-           saveAs("Tiff", input+"\\"+dir+"\\"+filename+".tif"); run("Close All");
+           saveAs("Tiff", input+"\\"+dir+"\\"+filename+"x"+umpxratio+".tif"); run("Close All");
 		}
 	}
 }
