@@ -48,6 +48,7 @@ ud.slice_shift = 0;
 ud.loaded_slice = 0;
 ud.slice_at_shift_start = 1;
 ud.text = [];
+ud.deleteAll = false;
 
 reference_image = squeeze(templateVolume(ud.currentSlice,:,:));
 ud.im = plotTVslice(reference_image);
@@ -56,7 +57,7 @@ ud.ref = uint8(squeeze(templateVolume(ud.currentSlice,:,:)));
 ud.curr_im = uint8(squeeze(templateVolume(ud.currentSlice,:,:)));
 ud.curr_slice_trans = uint8(squeeze(templateVolume(ud.currentSlice,:,:)));
 ud.im_annotation = squeeze(annotationVolume(ud.currentSlice,:,:));
-ud.atlas_boundaries = zeros(ud.ref_size,'uint16');;
+ud.atlas_boundaries = zeros(ud.ref_size,'uint16');
 ud.offset_map = zeros(ud.ref_size);
 ud.loaded = 0;
 
@@ -327,7 +328,7 @@ switch key_letter
             disp('transform point mode on'); 
 
             ud.currentProbe = 0;
-
+            ud.deleteAll = false;
             % launch transform point mode
             if ~size(ud.current_pointList_for_transform,1)% ) (ud.curr_slice_num ~= (ud.slice_at_shift_start+ud.slice_shift) ||  && ~ud.loaded 
                 ud.curr_slice_num = ud.slice_at_shift_start+ud.slice_shift; %ud_slice.slice_num;
@@ -404,7 +405,7 @@ switch key_letter
         ref_mode = false;
         delete(ud.overlayAx); ud.overlayAx = [];
         % toggle which mode is active
-        if ~ud.clicked || ~ud.histology_overlay;
+        if ~ud.clicked || ~ud.histology_overlay
             ud.histology_overlay = ud.histology_overlay + 1 - 3*(ud.histology_overlay==2);
         end
         ud.clicked = false;
@@ -583,9 +584,24 @@ switch key_letter
 % d -- delete current transform or most recent probe point            
     case 'd' 
         if ud.getPoint_for_transform
-            ud.current_pointList_for_transform = zeros(0,2); set(ud.pointHands_for_transform(:), 'Visible', 'off'); 
-            ud.pointHands_for_transform = []; ud_slice.pointList = []; set(slice_figure, 'UserData', ud_slice);
-            disp('current transform erased');
+            if ud.deleteAll
+                ud.current_pointList_for_transform = zeros(0,2); 
+                set(ud.pointHands_for_transform(:), 'Visible', 'off'); 
+                ud.pointHands_for_transform = []; 
+                ud_slice.pointList = [];
+                ud.pointList_for_transform = [];
+                set(ud_slice.pointHands(:), 'Visible', 'off');
+                set(slice_figure, 'UserData', ud_slice);
+                disp('current transform erased');
+                ud.deleteAll = ~ud.deleteAll;
+            else
+                set(ud.pointHands_for_transform(end), 'Visible', 'off'); 
+                ud.pointHands_for_transform = ud.pointHands_for_transform(1:end-1); 
+                ud.pointList_for_transform = ud.pointList_for_transform(1:end-1,:);
+                ud.current_pointList_for_transform = ud.current_pointList_for_transform(1:end-1,:);
+                disp('latest landmark in atlas erased');
+                ud.deleteAll = ~ud.deleteAll;
+            end
         elseif ud.currentProbe
             ud.pointList{ud.currentProbe,1} = ud.pointList{ud.currentProbe,1}(1:end-1,:);
             ud.pointList{ud.currentProbe,2} = ud.pointList{ud.currentProbe,2}(1:end-1,:);
@@ -655,7 +671,7 @@ set(f, 'UserData', ud);
 function updateSlice(f, evt, allData, slice_figure, save_location)
 
 ud = get(f, 'UserData');
-
+ud.deleteAll = false;
 % scroll through slices
 if ud.scrollMode==0
     ud.currentSlice = ud.currentSlice+evt.VerticalScrollCount*3;
@@ -948,7 +964,7 @@ function atlasClickCallback(im, keydata, slice_figure, save_location)
 f = get(get(im, 'Parent'), 'Parent');
 ud = get(f, 'UserData');
 ud_slice = get(slice_figure, 'UserData');
-
+ud.deleteAll = false;
 % probe view mode
 if ud.probe_view_mode && ud.currentProbe
     clickX = round(keydata.IntersectionPoint(1));

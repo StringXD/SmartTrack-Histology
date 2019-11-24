@@ -44,13 +44,14 @@ ud_slice = updateSliceImage(ud_slice);
 function sliceClickCallback(im, keydata)
 f = get(get(im, 'Parent'), 'Parent');
 ud = get(f, 'UserData');
-
+ud.deleteAll = false;
 
 if ud.getPoint
     clickX = round(keydata.IntersectionPoint(1));
     clickY = round(keydata.IntersectionPoint(2));
 
     ud.pointList(end+1, :) = [clickX, ud.ref_size(1) - clickY];
+    set(ud.pointHands(:), 'color', [.7 .3 .3]);
     ud.pointHands(end+1) = plot(ud.sliceAx, clickX, clickY, 'ro', 'color', [0 .5 0],'linewidth',2,'markers',4);    
     
      if clickX < 100 && (ud.ref_size(1) - clickY) < 100 % if click in corner, break
@@ -65,29 +66,39 @@ set(f, 'UserData', ud);
 % react to keyboard press
 % ------------------------
 function SliceAtlasHotkeyFcn(fig, keydata, f)
-
 ud = get(fig, 'UserData');
 
 % left arrow -- go to previous slice
-if strcmp(keydata.Key,'leftarrow')    
+if strcmp(keydata.Key,'leftarrow') 
+    ud.deleteAll = false;
     if ud.slice_num > 1
         ud.slice_num = ud.slice_num - 1;
         ud = updateSliceImage(ud);
     end
     
 % right arrow -- go to next slice    
-elseif strcmp(keydata.Key,'rightarrow') 
+elseif strcmp(keydata.Key,'rightarrow')
+    ud.deleteAll = false;
     if ud.slice_num < ud.total_num_files
         ud.slice_num = ud.slice_num + 1;
         ud = updateSliceImage(ud);
     end
 % d -- delete current transform points
 elseif strcmp(keydata.Key,'d') 
-    disp('current transform points deleted')
-    set(ud.pointHands(:), 'Visible', 'off'); 
-    ud.pointList = [];    
+    if ud.deleteAll
+        disp('current transform points deleted')
+        set(ud.pointHands(:), 'Visible', 'off'); 
+        ud.pointList = [];
+        ud.deleteAll = ~ud.deleteAll;
+    else
+        disp('latest landmark in slice deleted')
+        set(ud.pointHands(end), 'Visible', 'off');
+        ud.pointList = ud.pointList(1:end-1,:);
+        ud.deleteAll = ~ud.deleteAll;
+    end
 % t -- transform point mode
 elseif strcmp(keydata.Key,'t')
+    ud.deleteAll = false;
     ud.getPoint = ~ud.getPoint;
         if ud.getPoint; disp('transform point mode!'); end
 else
@@ -104,7 +115,7 @@ set(fig, 'UserData', ud);
 function ud = updateSliceImage(ud)
 
     title_ending = '';
-    
+    ud.deleteAll = 0;
     processed_image_name = ud.processed_image_names{ud.slice_num};
     current_slice_image = flip(imread(fullfile(ud.processed_images_folder, processed_image_name)),1);
     if size(current_slice_image,1) > ud.ref_size(1)+2 || size(current_slice_image,2) > ud.ref_size(2)+2
