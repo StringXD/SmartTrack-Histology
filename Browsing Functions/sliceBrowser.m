@@ -62,6 +62,7 @@ if ud.getPoint
 end
 set(f, 'UserData', ud);
 
+
 % ------------------------
 % react to keyboard press
 % ------------------------
@@ -85,20 +86,25 @@ elseif strcmp(keydata.Key,'rightarrow')
     end
 % d -- delete current transform points
 elseif strcmp(keydata.Key,'d') 
-    if ud.deleteAll
-        disp('current transform points deleted')
-        set(ud.pointHands(:), 'Visible', 'off'); 
-        ud.pointList = [];
-        ud.deleteAll = ~ud.deleteAll;
-    else
-        disp('latest landmark in slice deleted')
-        set(ud.pointHands(end), 'Visible', 'off');
-        ud.pointList = ud.pointList(1:end-1,:);
-        ud.deleteAll = ~ud.deleteAll;
+    try
+        if ud.deleteAll
+            disp('current transform points deleted')
+            set(ud.pointHands(:), 'Visible', 'off'); 
+            ud.pointList = [];
+            ud.deleteAll = ~ud.deleteAll;
+        else
+            disp('latest landmark in slice deleted')
+            set(ud.pointHands(end), 'Visible', 'off');
+            ud.pointList = ud.pointList(1:end-1,:);
+            ud.deleteAll = ~ud.deleteAll;
+        end
+    catch
+        disp('All points deleted already!');
     end
 % t -- transform point mode
 elseif strcmp(keydata.Key,'t')
     ud.deleteAll = false;
+    ud.pointList = [];
     ud.getPoint = ~ud.getPoint;
         if ud.getPoint; disp('transform point mode!'); end
 else

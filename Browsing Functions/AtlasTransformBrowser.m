@@ -584,23 +584,27 @@ switch key_letter
 % d -- delete current transform or most recent probe point            
     case 'd' 
         if ud.getPoint_for_transform
-            if ud.deleteAll
-                ud.current_pointList_for_transform = zeros(0,2); 
-                set(ud.pointHands_for_transform(:), 'Visible', 'off'); 
-                ud.pointHands_for_transform = []; 
-                ud_slice.pointList = [];
-                ud.pointList_for_transform = [];
-                set(ud_slice.pointHands(:), 'Visible', 'off');
-                set(slice_figure, 'UserData', ud_slice);
-                disp('current transform erased');
-                ud.deleteAll = ~ud.deleteAll;
-            else
-                set(ud.pointHands_for_transform(end), 'Visible', 'off'); 
-                ud.pointHands_for_transform = ud.pointHands_for_transform(1:end-1); 
-                ud.pointList_for_transform = ud.pointList_for_transform(1:end-1,:);
-                ud.current_pointList_for_transform = ud.current_pointList_for_transform(1:end-1,:);
-                disp('latest landmark in atlas erased');
-                ud.deleteAll = ~ud.deleteAll;
+            try 
+                if ud.deleteAll
+                    ud.current_pointList_for_transform = zeros(0,2); 
+                    set(ud.pointHands_for_transform(:), 'Visible', 'off'); 
+                    ud.pointHands_for_transform = []; 
+                    ud_slice.pointList = [];
+                    ud.pointList_for_transform = [];
+                    set(ud_slice.pointHands(:), 'Visible', 'off');
+                    set(slice_figure, 'UserData', ud_slice);
+                    disp('current transform erased');
+                    ud.deleteAll = ~ud.deleteAll;
+                else
+                    set(ud.pointHands_for_transform(end), 'Visible', 'off'); 
+                    ud.pointHands_for_transform = ud.pointHands_for_transform(1:end-1); 
+                    ud.pointList_for_transform = ud.pointList_for_transform(1:end-1,:);
+                    ud.current_pointList_for_transform = ud.current_pointList_for_transform(1:end-1,:);
+                    disp('latest landmark in atlas erased');
+                    ud.deleteAll = ~ud.deleteAll;
+                end
+            catch
+                disp('All points deleted already!');
             end
         elseif ud.currentProbe
             ud.pointList{ud.currentProbe,1} = ud.pointList{ud.currentProbe,1}(1:end-1,:);
@@ -693,6 +697,7 @@ elseif ud.scrollMode == 3
   ud.showOverlay = 0;
   delete(ud.overlayAx); ud.overlayAx = [];  
   ud_slice = get(slice_figure, 'UserData');
+  ud_slice.pointList = [];
   
   try
     ud.slice_shift = ud.slice_shift-evt.VerticalScrollCount;
