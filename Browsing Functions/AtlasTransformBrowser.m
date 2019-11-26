@@ -678,18 +678,18 @@ ud = get(f, 'UserData');
 ud.deleteAll = false;
 % scroll through slices
 if ud.scrollMode==0
-    ud.currentSlice = ud.currentSlice+evt.VerticalScrollCount*3;
+    ud.currentSlice = ud.currentSlice+evt.VerticalScrollCount;
 
     if ud.currentSlice>size(allData.tv,1); ud.currentSlice = 1; end %wrap around
     if ud.currentSlice<1; ud.currentSlice = size(allData.tv,1); end %wrap around
     
 % scroll through D/V angles        
 elseif ud.scrollMode==1 %&&  abs(ud.currentAngle(1)) < 130
-  ud.currentAngle(1) = ud.currentAngle(1)+evt.VerticalScrollCount*3;
+  ud.currentAngle(1) = ud.currentAngle(1)+evt.VerticalScrollCount;
 
 % scroll through M/L angles
 elseif ud.scrollMode==2 %&&  abs(ud.currentAngle(2)) < 130
-  ud.currentAngle(2) = ud.currentAngle(2)+evt.VerticalScrollCount*3; 
+  ud.currentAngle(2) = ud.currentAngle(2)+evt.VerticalScrollCount; 
   
 % scroll through slices (left arrow pressed)
 elseif ud.scrollMode == 3
@@ -766,10 +766,43 @@ elseif ud.scrollMode == 3
         ud.curr_im = ud.ref; set(f, 'UserData', ud);   
         set(ud.text,'Visible','off');
         fill([5 5 250 250],[5 50 50 5],[0 0 0]); ud.text(end+1) = text(5,15,['Slice ' num2str(ud.slice_at_shift_start+ud.slice_shift) ' - no transform'],'color','white');        
-    end  
-        
+    end        
 end  
-
+% Automatically compute AP
+try
+    if ud.slice_shift || ud.slice_at_shift_start ~= ud_slice.slice_num
+        sliceMinus1_name = ud_slice.processed_image_names{(ud.slice_at_shift_start+ud.slice_shift-1)}(1:end-4);
+        sliceMinus2_name = ud_slice.processed_image_names{(ud.slice_at_shift_start+ud.slice_shift-2)}(1:end-4);
+    else
+        sliceMinus1_name = ud_slice.processed_image_names{ud_slice.slice_num-1}(1:end-4);
+        sliceMinus2_name = ud_slice.processed_image_names{ud_slice.slice_num-2}(1:end-4);
+    end
+    transformMinus1_data = load(fullfile(folder_transformations, [sliceMinus1_name '_transform_data.mat']));
+    transformMinus1_data = transformMinus1_data.save_transform;
+    ud.sliceMinus1 = transformMinus1_data.allen_location{1};
+    transformMinus2_data = load(fullfile(folder_transformations, [sliceMinus2_name '_transform_data.mat']));
+    transformMinus2_data = transformMinus2_data.save_transform;
+    ud.sliceMinus2 = transformMinus2_data.allen_location{1};
+    ud.currentSlice = ud.sliceMinus1 + ud.sliceMinus1 - ud.sliceMinus2;
+catch
+    try
+        if ud.slice_shift || ud.slice_at_shift_start ~= ud_slice.slice_num
+            slicePlus1_name = ud_slice.processed_image_names{(ud.slice_at_shift_start+ud.slice_shift+1)}(1:end-4);
+            slicePlus2_name = ud_slice.processed_image_names{(ud.slice_at_shift_start+ud.slice_shift+2)}(1:end-4);
+        else
+            slicePlus1_name = ud_slice.processed_image_names{ud_slice.slice_num+1}(1:end-4);
+            slicePlus2_name = ud_slice.processed_image_names{ud_slice.slice_num+2}(1:end-4);
+        end
+        transformPlus1_data = load(fullfile(folder_transformations, [slicePlus1_name '_transform_data.mat']));
+        transformPlus1_data = transformPlus1_data.save_transform;
+        ud.slicePlus1 = transformPlus1_data.allen_location{1};
+        transformPlus2_data = load(fullfile(folder_transformations, [slicePlus2_name '_transform_data.mat']));
+        transformPlus2_data = transformPlus2_data.save_transform;
+        ud.slicePlus2 = transformPlus2_data.allen_location{1};
+        ud.currentSlice = ud.slicePlus1 + ud.slicePlus1 - ud.slicePlus2;
+    catch
+    end
+end
 % update coordinates at the top
 pixel = getPixel(ud.atlasAx);
 updateStereotaxCoords(ud.currentSlice, pixel, ud.bregma, ud.bregmaText, ud.angleText, ud.currentSlice, ud.currentAngle(1), ud.currentAngle(2), ud.ref_size);
