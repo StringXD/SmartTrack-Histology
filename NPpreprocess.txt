@@ -19,20 +19,48 @@ for (i=0; i<listDirs.length; i++) {
 		if (!endsWith(list[j], "/") && list[j] != overviewName) {
            run("Bio-Formats Importer", "open=["+input+"\\"+dir+"\\"+list[j]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_1");
            filename = substring(list[j], 0, lengthOf(list[j])-4);
-           w = getWidth/5;
-           h = getHeight/5;
-           run("Size...", "width=w height=h depth=2 constrain average interpolation=Bilinear");
+           getDimensions(width, height, channels, slices, frames);
+           w = width/5;
+           h = height/5;
+           run("Size...", "width=w height=h depth=channels constrain average interpolation=Bilinear");
            rename("A");
            getPixelSize(unit, pw, ph, pd);
            umpxratio = round(pw*100)/100;
            run("Split Channels");
-           selectWindow("C1-A");
-           setMinAndMax(0, 4000);
-           run("Apply LUT");
-           selectWindow("C2-A");
-           setMinAndMax(0, 20000);
-           run("Apply LUT");
-           run("Merge Channels...", "c3=C2-A c6=C1-A create");
+           if (channels == 2) {
+               selectWindow("C1-A");
+               setMinAndMax(0, 100);
+               run("Apply LUT");
+               selectWindow("C2-A");
+               run("Enhance Contrast", "saturated=0.35");
+               run("Merge Channels...", "c3=C2-A c6=C1-A create");
+           } else if (channels == 3) {
+               selectWindow("C1-A");
+               setMinAndMax(0, 10000);
+               run("Apply LUT");
+               selectWindow("C2-A");
+               setMinAndMax(0, 4000);
+               run("Apply LUT");
+               selectWindow("C3-A");
+               setMinAndMax(0, 10000);
+               run("Apply LUT");
+               run("Merge Channels...", "c2=C3-A c3=C1-A c6=C2-A create");
+           } else if (channels == 4) {
+               selectWindow("C1-A");
+               setMinAndMax(0, 10000);
+               run("Apply LUT");
+               selectWindow("C2-A");
+               setMinAndMax(0, 15000);
+               run("Apply LUT");
+               selectWindow("C3-A");
+               setMinAndMax(0, 25000);
+               run("Apply LUT");
+               selectWindow("C4-A");
+               run("Enhance Contrast", "saturated=0.35");
+               run("Merge Channels...", "c1=C2-A c2=C3-A c3=C4-A c6=C1-A c7=C2-A create");
+
+           }
+           
            run("Stack to RGB");
            selectWindow("Composite");
            close();
