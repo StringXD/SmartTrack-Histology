@@ -52,7 +52,12 @@ if ~exist('av','var') || ~exist('st','var')
     st = loadStructureTree(structure_tree_location);
 end
 % Color design
-ProbeColors = .75*[1.3 1.3 1.3; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 .9; .65 .4 .25; .7 .95 .3; .7 0 0; .6 0 .7; 1 .6 0]; 
+if size(matrix,1) > 11
+    ProbeColors = distinguishable_colors(size(matrix,1),'k');
+else
+    ProbeColors = .75*[1.3 1.3 1.3; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 .9; .65 .4 .25; .7 .95 .3; .7 0 0; .6 0 .7; 1 .6 0];
+end
+
 % order of colors: {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','purple','orange','red'};
 fwireframe = [];
 
