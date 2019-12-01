@@ -29,11 +29,11 @@ for (i=0; i<listDirs.length; i++) {
            run("Split Channels");
            if (channels == 2) {
                selectWindow("C1-A");
-               setMinAndMax(0, 100);
-               run("Apply LUT");
-               selectWindow("C2-A");
                run("Enhance Contrast", "saturated=0.35");
-               run("Merge Channels...", "c3=C2-A c6=C1-A create");
+               selectWindow("C2-A");
+               setMinAndMax(0, 1950);
+               run("Apply LUT");
+               run("Merge Channels...", "c3=C1-A c6=C2-A create");
            } else if (channels == 3) {
                selectWindow("C1-A");
                setMinAndMax(0, 10000);
@@ -60,10 +60,9 @@ for (i=0; i<listDirs.length; i++) {
                run("Merge Channels...", "c1=C2-A c2=C3-A c3=C4-A c6=C1-A c7=C2-A create");
 
            }
-           
+           rename("A");
            run("Stack to RGB");
-           selectWindow("Composite");
-           close();
+           selectWindow("A (RGB)");
            saveAs("Tiff", input+"\\"+dir+"\\"+filename+"x"+umpxratio+".tif"); run("Close All");
 		}
 	}
