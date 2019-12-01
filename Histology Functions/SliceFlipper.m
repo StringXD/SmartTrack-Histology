@@ -1,6 +1,10 @@
-function SliceFlipper(slice_figure, folder_processed_images, reference_size)
-% crop, sharpen, and flip slice images
+function SliceFlipper(slice_figure, folder_processed_images, reference_size, varargin)
 
+% crop, sharpen, and flip slice images
+ud.multiboxing = varargin{1};
+if ud.multiboxing
+    ud.folder_processed_images4reg = varargin{2};
+end
 processed_images = dir([folder_processed_images filesep '*tif']);
 ud.processed_image_names = natsortfiles({processed_images.name});
 ud.total_num_files = size(processed_images,1); disp(['found ' num2str(ud.total_num_files) ' processed slice images']);
@@ -9,7 +13,6 @@ ud.slice_num = 1;
 ud.flip = 0; 
 ud.rotate_angle = 0;
 ud.reference_size = reference_size;
-
 ud.grid = 0;
 ud = load_next_slice(ud,folder_processed_images);
 
@@ -21,12 +24,10 @@ imshow(ud.current_slice_image + ud.grid)
 title(['Slice ' num2str(ud.slice_num) ' / ' num2str(ud.total_num_files)])
 set(slice_figure, 'UserData', ud);
 
-     
-
 % key function for slice
 set(slice_figure, 'KeyPressFcn', @(slice_figure,keydata)SliceCropHotkeyFcn(keydata, slice_figure, folder_processed_images));
 % scroll function for slice
-set(slice_figure, 'WindowScrollWheelFcn', @(src,evt)SliceScrollFcn(slice_figure, evt))
+set(slice_figure, 'WindowScrollWheelFcn', @(src,evt)SliceScrollFcn(slice_figure, evt));
 
 
 fprintf(1, '\n Controls: \n \n');
@@ -52,12 +53,18 @@ ud = get(slice_figure, 'UserData');
 
 switch lower(keydata.Key)   
     case 'leftarrow' % save and previous slice
-        imwrite(ud.current_slice_image, fullfile(folder_processed_images, ud.processed_image_name))        
+        imwrite(ud.current_slice_image, fullfile(folder_processed_images, ud.processed_image_name))
+        try
+            imwrite(ud.current_reg_image, fullfile(ud.folder_processed_images4reg, ud.processed_image_name))
+        end
         ud.slice_num = ud.slice_num - 1*(ud.slice_num>1);
         ud = load_next_slice(ud,folder_processed_images);
-
+        
     case 'rightarrow' % save and next slice      
         imwrite(ud.current_slice_image, fullfile(folder_processed_images, ud.processed_image_name))
+        try
+            imwrite(ud.current_reg_image, fullfile(ud.folder_processed_images4reg, ud.processed_image_name))
+        end
         ud.slice_num = ud.slice_num + 1*(ud.slice_num < length(ud.processed_image_names));
         ud = load_next_slice(ud,folder_processed_images);
         
@@ -117,6 +124,10 @@ switch lower(keydata.Key)
     case 'f' % flip horizontally
         ud.current_slice_image = flip(ud.current_slice_image,2);
         ud.original_ish_slice_image = flip(ud.original_ish_slice_image,2);
+        try
+            ud.current_reg_image = flip(ud.current_reg_image,2);
+            ud.original_ish_reg_image = flip(ud.original_ish_reg_image,2);
+        end
         
     case 'r' % return to original image
         ud.current_slice_image = ud.original_slice_image;
@@ -124,39 +135,60 @@ switch lower(keydata.Key)
         ud.size = size(ud.current_slice_image); 
         ud.grid = imresize(ud.grid, ud.size(1:2)); 
         ud.rotate_angle = 0;
-
+        try
+            disp('r');
+            ud.current_reg_image = ud.original_reg_image;
+            ud.original_ish_reg_image = ud.original_reg_image;
+        end
+        
 end
 
 
 
 % in all cases, update image and title
 imshow(ud.current_slice_image+ud.grid)
-title(['Slice ' num2str(ud.slice_num) ' / ' num2str(ud.total_num_files)])
 
+title(['Slice ' num2str(ud.slice_num) ' / ' num2str(ud.total_num_files)])
 
 set(slice_figure, 'UserData', ud);
 
 function ud = load_next_slice(ud,folder_processed_images)
+  
     ud.processed_image_name = ud.processed_image_names{ud.slice_num};
     ud.current_slice_image = imread(fullfile(folder_processed_images, ud.processed_image_name));
-
-    % pad if possible (if small enough)
+    try
+        ud.current_reg_image = imread(fullfile(ud.folder_processed_images4reg, ud.processed_image_name));
+    catch
+        disp('Can not find reg image!');
+        ud.current_reg_image = [];
+    end
+    % pad if possible (if small enoudh)
     try; ud.current_slice_image = padarray(ud.current_slice_image, [floor((ud.reference_size(1) - size(ud.current_slice_image,1)) / 2) + mod(size(ud.current_slice_image,1),2) ...
                                                   floor((ud.reference_size(2) - size(ud.current_slice_image,2)) / 2) + mod(size(ud.current_slice_image,2),2)],0);
-    end          
+    end 
+    try; ud.current_reg_image = padarray(ud.current_reg_image, [floor((ud.reference_size(1) - size(ud.current_reg_image,1)) / 2) + mod(size(ud.current_reg_image,1),2) ...
+                                                  floor((ud.reference_size(2) - size(ud.current_reg_image,2)) / 2) + mod(size(ud.current_reg_image,2),2)],0);
+    end
 
     ud.original_slice_image = ud.current_slice_image;             
     ud.original_ish_slice_image = ud.current_slice_image;        
 
+    try
+        ud.original_reg_image = ud.current_reg_image;             
+        ud.original_ish_reg_image = ud.current_reg_image; 
+    end
     ud.size = size(ud.current_slice_image); 
     if ud.size(1) > ud.reference_size(1)+1 || ud.size(2) > ud.reference_size(2)+2
         disp(['Slice ' num2str(ud.slice_num) ' / ' num2str(ud.total_num_files) ' is ' num2str(ud.size(1)) 'x' num2str(ud.size(2)) ' pixels:']);
-        disp(['I suggest you crop this image down to under ' num2str(ud.reference_size(1)) ' x ' num2str(ud.reference_size(2)) ' pxl'])
+        disp(['I sudgest you crop this image down to under ' num2str(ud.reference_size(1)) ' x ' num2str(ud.reference_size(2)) ' pxl'])
     end        
     ud.grid = imresize(ud.grid, ud.size(1:2)); 
     ud.rotate_angle = 0;
     
-    imwrite(ud.current_slice_image, fullfile(folder_processed_images, ud.processed_image_name)) 
+    imwrite(ud.current_slice_image, fullfile(folder_processed_images, ud.processed_image_name))
+    try
+        imwrite(ud.current_reg_image, fullfile(ud.folder_processed_images4reg, ud.processed_image_name))
+    end
 
 
 % function to rotate slice by scrolling
@@ -168,7 +200,12 @@ ud = get(fig, 'UserData');
 ud.rotate_angle = ud.rotate_angle + evt.VerticalScrollCount*.75;
 
 ud.current_slice_image = imrotate(ud.original_ish_slice_image,ud.rotate_angle,'nearest','crop');
+
+if ud.multiboxing
+    ud.current_reg_image = imrotate(ud.original_ish_reg_image,ud.rotate_angle,'nearest','crop');
+end   
 imshow(ud.current_slice_image+ud.grid)
+
 title(['Slice ' num2str(ud.slice_num) ' / ' num2str(ud.total_num_files)])
 
 set(fig, 'UserData', ud);
