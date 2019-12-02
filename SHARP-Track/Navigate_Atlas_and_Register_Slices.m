@@ -7,8 +7,8 @@
 
 
 % directory of histology
-processed_images_folder = 'E:\prJ\neuropixels\XD_hist_20191030_Npxl_M30\1\merged\processed'; 
-
+processed_images_folder = 'E:\prJ\neuropixels\NP histology\xd_20191120\25\processed_4reg';  
+processed_roi_folder = 'E:\prJ\neuropixels\NP histology\xd_20191120\25\processed_roi';
 % name the saved probe points, to avoid overwriting another set of probes going in the same folder
 probe_save_name_suffix = 'electrode_1'; 
 
@@ -55,7 +55,7 @@ sliceBrowser(slice_figure_browser, processed_images_folder, f, reference_size);
 
 % use application in Atlas Transform Viewer
 % use this function if you have a processed_images_folder with appropriately processed .tif histology images
-f = AtlasTransformBrowser(f, tv_plot, av_plot, st, slice_figure_browser, processed_images_folder, probe_save_name_suffix); 
+f = AtlasTransformBrowser(f, tv_plot, av_plot, st, slice_figure_browser, processed_roi_folder, probe_save_name_suffix); 
 
 
 % use the simpler version, which does not interface with processed slice images
