@@ -7,6 +7,9 @@ function[] = Display_Designed_Track(matrix)
 annotation_volume_location = 'E:\prJ\neuropixels\histology location analysis\allenCCF\annotation_volume_10um_by_index.npy';
 structure_tree_location = 'E:\prJ\neuropixels\histology location analysis\allenCCF\structure_tree_safe_2017.csv';
 
+% directory of saving result figures and tables
+save_location = 'E:\test\fig';
+
 % --------------
 % key parameters
 % --------------
@@ -53,7 +56,7 @@ if ~exist('av','var') || ~exist('st','var')
 end
 % Color design
 if size(matrix,1) > 11
-    ProbeColors = distinguishable_colors(size(matrix,1),'k');
+    ProbeColors = .75*distinguishable_colors(size(matrix,1),'k');
 else
     ProbeColors = .75*[1.3 1.3 1.3; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 .9; .65 .4 .25; .7 .95 .3; .7 0 0; .6 0 .7; 1 .6 0];
 end
@@ -142,11 +145,12 @@ for selected_probe = 1:size(matrix,1)
 
     % find and regions the probe goes through, confidence in those regions, and plot them
     borders_table = plotDistToNearestToTip(m, p, av, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table); % plots confidence score based on distance to nearest region along probe
-    %writetable(borders_table,['E:\prJ\neuropixels\histology location analysis\Probe ' num2str(selected_probe) '.csv']);
-    writetable(borders_table,['E:\prJ\neuropixels\histology location analysis\Probe ' num2str(selected_probe) '.csv']);
+    writetable(borders_table,[save_location '\Probe ' num2str(selected_probe) '.csv']);
     title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
+    saveas(gcf,[save_location '\Probe ' num2str(selected_probe) '.png']);
+    close(gcf);
 
 
     pause(.05)
 end
-
+saveas(fwireframe,[save_location '\overview.fig']);

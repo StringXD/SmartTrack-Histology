@@ -5,11 +5,14 @@
 %% ENTER PARAMETERS AND FILE LOCATION
 
 % file location of probe points
-processed_images_folder = 'E:\prJ\neuropixels\XD_hist_20191030_Npxl_M30\1\merged\processed';
+processed_images_folder = 'E:\prJ\neuropixels\NP histology\xd_20191120\25\processed_roi';
 
 % directory of reference atlas files
 annotation_volume_location = 'E:\prJ\neuropixels\histology location analysis\allenCCF\annotation_volume_10um_by_index.npy';
 structure_tree_location = 'E:\prJ\neuropixels\histology location analysis\allenCCF\structure_tree_safe_2017.csv';
+
+% directory of saving result figures and tables
+save_location = 'E:\prJ\neuropixels\NP histology\xd_20191120\25\25\results';
 
 % name of the saved probe points
  probe_save_name_suffix = 'electrode_1';
@@ -22,7 +25,7 @@ probes_to_analyze = 'all';  % [1 2]
 % key parameters
 % --------------
 % how far into the brain did you go from the surface, either for each probe or just one number for all -- in mm
-probe_lengths = [4.89,4,4.2,4.2,4]; 
+probe_lengths = [5,5,4.95,4,5,5.4,3.95,4,4.9]; 
 
 % from the bottom tip, how much of the probe contained recording sites -- in mm
 active_probe_length = 3.84;
@@ -74,6 +77,7 @@ end
 
 % load probe points
 probePoints = load(fullfile(processed_images_folder, ['probe_points' probe_save_name_suffix]));
+
 ProbeColors = .75*[1.3 1.3 1.3; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 .9; .65 .4 .25; .7 .95 .3; .7 0 0; .6 0 .7; 1 .6 0]; 
 % order of colors: {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','purple','orange','red'};
 fwireframe = [];
@@ -86,9 +90,12 @@ if strcmp(probes_to_analyze,'all')
     probes = 1:size(probePoints.pointList.pointList,1);
 else
     probes = probes_to_analyze;
-end 
+end
 
-
+% Auto distinguishable colors
+if length(probes) > 11
+    ProbeColors = .75*distinguishable_colors(length(probes),'k');
+end
 
 
 
@@ -214,9 +221,11 @@ error_length = round(probe_radius / 10);
 
 % find and regions the probe goes through, confidence in those regions, and plot them
 borders_table = plotDistToNearestToTip(m, p, av, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table); % plots confidence score based on distance to nearest region along probe
-writetable(borders_table,['E:\prJ\neuropixels\XD_hist_20191030_Npxl_M30\1\results\Probe ' num2str(selected_probe) '.csv']);
+writetable(borders_table,[save_location '\Probe ' num2str(selected_probe) '.csv']);
 title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
-
+saveas(gcf,[save_location '\Probe ' num2str(selected_probe) '.png']);
+close(gcf);
 
 pause(.05)
 end
+saveas(fwireframe,[save_location '\overview.fig']);
