@@ -111,7 +111,7 @@ for selected_probe = 1:size(matrix,1)
     end
     
     % compute p vector based on implantation angle
-    p = [0,cosd(matrix(selected_probe,4)),sind(matrix(selected_probe,4))];
+    p = [0,cosd(matrix(selected_probe,4)),-sind(matrix(selected_probe,4))];
     
     % focus on wireframe plot
     figure(fwireframe);
@@ -128,21 +128,20 @@ for selected_probe = 1:size(matrix,1)
     active_probe_position = round([active_site_start  probe_length_histo]);
     
     % plot line the length of the active probe sites in reference space
-    plot3(m(1)+p(1)*[active_probe_position(1) active_probe_position(2)], m(3)-p(3)*[active_probe_position(1) active_probe_position(2)], m(2)+p(2)*[active_probe_position(1) active_probe_position(2)], ...
+    plot3(m(1)+p(1)*[active_probe_position(1) active_probe_position(2)], m(3)+p(3)*[active_probe_position(1) active_probe_position(2)], m(2)+p(2)*[active_probe_position(1) active_probe_position(2)], ...
         'Color', ProbeColors(selected_probe,:), 'LineWidth', 1);
-    plot3(m(1)+p(1)*[active_probe_position(1) active_probe_position(2)], 1140-m(3)+p(3)*[active_probe_position(1) active_probe_position(2)], m(2)+p(2)*[active_probe_position(1) active_probe_position(2)], ...
+    plot3(m(1)+p(1)*[active_probe_position(1) active_probe_position(2)], 1140-m(3)-p(3)*[active_probe_position(1) active_probe_position(2)], m(2)+p(2)*[active_probe_position(1) active_probe_position(2)], ...
         'Color', ProbeColors(selected_probe,:), 'LineWidth', 1);
     % plot line the length of the entire probe in reference space
-    plot3(m(1)+p(1)*[1 probe_length_histo], m(3)-p(3)*[1 probe_length_histo], m(2)+p(2)*[1 probe_length_histo], ...
+    plot3(m(1)+p(1)*[1 probe_length_histo], m(3)+p(3)*[1 probe_length_histo], m(2)+p(2)*[1 probe_length_histo], ...
         'Color', ProbeColors(selected_probe,:), 'LineWidth', 1, 'LineStyle',':');
-    plot3(m(1)+p(1)*[1 probe_length_histo], 1140-m(3)+p(3)*[1 probe_length_histo], m(2)+p(2)*[1 probe_length_histo], ...
+    plot3(m(1)+p(1)*[1 probe_length_histo], 1140-m(3)-p(3)*[1 probe_length_histo], m(2)+p(2)*[1 probe_length_histo], ...
         'Color', ProbeColors(selected_probe,:), 'LineWidth', 1, 'LineStyle',':');
     
     %% Get and plot brain region labels along the extent of each probe
     
     % convert error radius into mm
     error_length = round(probe_radius / 10);
-
     % find and regions the probe goes through, confidence in those regions, and plot them
     borders_table = plotDistToNearestToTip(m, p, av, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table); % plots confidence score based on distance to nearest region along probe
     writetable(borders_table,[save_location '\Probe ' num2str(selected_probe) '.csv']);
