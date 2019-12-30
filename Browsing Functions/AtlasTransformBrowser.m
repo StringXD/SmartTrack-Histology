@@ -1,4 +1,4 @@
-function f = allenAtlasBrowser(f, templateVolume, annotationVolume, structureTree, slice_figure, save_location, save_suffix)
+function f = AtlasTransformBrowser(f, templateVolume, annotationVolume, structureTree, slice_figure, save_location, save_suffix)
 % ------------------------------------------------
 % Browser for the allen atlas ccf data in matlab.
 % ------------------------------------------------
@@ -34,7 +34,8 @@ ud.pointList = cell(1,3); ud.pointList{1} = zeros(0,3);
 ud.pointHands = cell(1,3);
 ud.probe_view_mode = false;
 ud.currentProbe = 0; ud.ProbeColors = [1 1 1; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 1; .65 .4 .25; .7 .95 .3; .7 0 0; .5 0 .6; 1 .6 0]; 
-ud.ProbeColor =  {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','red','purple','orange'};
+ud.ProbeColors = [ud.ProbeColors; distinguishable_colors(5,ud.ProbeColors)];
+ud.ProbeColor =  {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','red','purple','orange', 'ex1','ex2','ex3','ex4','ex5'};
 ud.getPoint_for_transform =false; ud.pointList_for_transform = zeros(0,2); ud.pointHands_for_transform = [];
 ud.current_pointList_for_transform = zeros(0,2); ud.curr_slice_num = 1;
 ud.clicked = false;
@@ -49,7 +50,7 @@ ud.loaded_slice = 0;
 ud.slice_at_shift_start = 1;
 ud.text = [];
 ud.deleteAll = false;
-
+ud.scrollBackwards = false;
 reference_image = squeeze(templateVolume(ud.currentSlice,:,:));
 ud.im = plotTVslice(reference_image);
 ud.ref_size = size(reference_image);
