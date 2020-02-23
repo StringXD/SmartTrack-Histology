@@ -23,8 +23,9 @@ for i = 1:length(scans)
             tempSliceFolder = [scans{i} '\' currMouseDirNames{sliceID} '\'];
             cd(tempSliceFolder);
             images = dir('*.tif');
-            imgNames = {images.name};
-            [imgNames,~] = sort_nat(imgNames,'ascend');
+            imagesTimeStamp = [images(:).datenum];
+            [~,Idx] = sort(imagesTimeStamp,'ascend');
+            imgNames = {images(Idx).name};
             for img = 1:length(imgNames)
                 tifNum = tifNum + 1;
                 copyfile(imgNames{img},[scans{i} '\' mouseID{id} '_indexed\' num2str(tifNum) '.tif']);
@@ -34,8 +35,7 @@ for i = 1:length(scans)
     end
 end
                 
-                
-            
+                  
     end
     
     
