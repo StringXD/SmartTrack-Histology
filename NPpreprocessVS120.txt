@@ -1,0 +1,54 @@
+input = getDirectory("Choose the Source Directory");
+listDirs = getFileList(input);
+for (i=0; i<listDirs.length; i++) {
+	dir = substring(listDirs[i], 0, lengthOf(listDirs[i])-1);
+	list = getFileList(input+"\\"+dir);
+	for (j=0; j<list.length; j++) {
+		if (!endsWith(list[j], "/")) {
+			isSeriesEnd = 0;
+			sliceId = 0;
+			seriesId = 13;
+			while (isSeriesEnd != 1){
+				seriesText = "series_"+d2s(seriesId,0);
+				run("Bio-Formats Importer", "open=["+input+"\\"+dir+"\\"+list[j]+"] color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT swap_dimensions "+seriesText);
+				currSubTitle = getInfo("slice.label");
+				if (indexOf(currSubTitle,"macro") != -1){
+					isSeriesEnd = 1;
+					run("Close All");
+				}
+				else if (indexOf(currSubTitle,"#") != -1){
+					run("Close All");
+					seriesId++;
+				}
+				else {
+					sliceId++;
+					filename = substring(list[j], 0, lengthOf(list[j])-4);
+					rename("A");
+					w = getWidth/5;
+           			h = getHeight/5;
+           			run("Size...", "width=w height=h depth=3 constrain average interpolation=Bilinear");
+           			getPixelSize(unit, pw, ph, pd);
+           			umpxratio = round(pw*100)/100;
+           			run("Split Channels");
+					selectWindow("C1-A");
+					run("Enhance Contrast", "saturated=0.35");
+					run("Apply LUT");
+					selectWindow("C2-A");
+					setMinAndMax(0, 2000);
+					run("Apply LUT");
+					selectWindow("C3-A");
+               		setMinAndMax(0, 2000);
+               		run("Apply LUT");
+					run("Merge Channels...", "c1=C2-A c3=C1-A c6=C3-A create");
+					rename("A");
+					run("Stack to RGB");
+					selectWindow("A (RGB)");
+					saveAs("Tiff", input+"\\"+dir+"\\"+filename+"_"+d2s(sliceId,0)+"x"+umpxratio+".tif");
+					run("Close All");
+					seriesId++;
+				}
+			}
+		}
+	}
+}
+			
