@@ -5,14 +5,14 @@
 %% ENTER PARAMETERS AND FILE LOCATION
 
 % file location of probe points
-processed_images_folder = 'E:\prJ\neuropixels\NP histology\xd_20191120\25\processed_roi';
+processed_images_folder = 'F:\NPdatasumHEM\Histology\10\results\processed_4reg';
 
 % directory of reference atlas files
 annotation_volume_location = 'E:\prJ\neuropixels\histology location analysis\allenCCF\annotation_volume_10um_by_index.npy';
 structure_tree_location = 'E:\prJ\neuropixels\histology location analysis\allenCCF\structure_tree_safe_2017.csv';
 
 % directory of saving result figures and tables
-save_location = 'E:\prJ\neuropixels\NP histology\xd_20191120\25\25\results';
+save_location = 'F:\NPdatasumHEM\Histology\10\results';
 
 % name of the saved probe points
  probe_save_name_suffix = 'electrode_1';
@@ -25,7 +25,7 @@ probes_to_analyze = 'all';  % [1 2]
 % key parameters
 % --------------
 % how far into the brain did you go from the surface, either for each probe or just one number for all -- in mm
-probe_lengths = [5,5,4.95,4,5,5.4,3.95,4,4.9]; 
+probe_lengths = [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]; 
 
 % from the bottom tip, how much of the probe contained recording sites -- in mm
 active_probe_length = 3.84;
@@ -58,8 +58,11 @@ probe_insertion_direction = 'down';
 show_region_table = true;
       
 % black brain?
-black_brain = true;
+black_brain = false;
 
+% red and blue?
+red_and_blue = true;
+RBlabels = [ones(8,1)*[1,0.3,0.3];ones(8,1)*[0.3,0.3,1]];
 
 % close all
 
@@ -93,8 +96,9 @@ else
 end
 
 % Auto distinguishable colors
+
 if length(probes) > 11
-    ProbeColors = .75*distinguishable_colors(length(probes),'k');
+    ProbeColors = [ProbeColors; distinguishable_colors(5,ProbeColors)];
 end
 
 
@@ -157,7 +161,7 @@ while ~(ann==1 && out_of_brain) % && distance_stepped > .5*active_probe_length)
     ann = av(round(m(1)),round(m(2)),round(m(3))); %until hitting the top
     if strcmp(st.safe_name(ann), 'root')
         % make sure this isn't just a 'root' area within the brain
-        m_further_up = m - p*50; % is there more brain 500 microns up along the track?
+        m_further_up = m - p*20; % is there more brain 200 microns up along the track?
         ann_further_up = av(round(max(1,m_further_up(1))),round(max(1,m_further_up(2))),round(max(1,m_further_up(3))));
         if strcmp(st.safe_name(ann_further_up), 'root')
             out_of_brain = true;
@@ -172,7 +176,11 @@ figure(fwireframe);
 hp = plot3(curr_probePoints(:,1), curr_probePoints(:,3), curr_probePoints(:,2), '.','linewidth',2, 'color',[ProbeColors(selected_probe,:) .2],'markers',10);
 
 % plot brain entry point
-plot3(m(1), m(3), m(2), 'r*','linewidth',1)
+if red_and_blue
+    plot3(m(1), m(3), m(2), 'Color',RBlabels(selected_probe,:),'Marker','*','linewidth',1)
+else
+    plot3(m(1), m(3), m(2), 'r*','linewidth',1)
+end
 
 % use the deepest clicked point as the tip of the probe, if no scaling provided (scaling_factor = false)
 if use_tip_to_get_reference_probe_length
