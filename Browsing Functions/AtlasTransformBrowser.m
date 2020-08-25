@@ -34,8 +34,8 @@ ud.pointList = cell(1,3); ud.pointList{1} = zeros(0,3);
 ud.pointHands = cell(1,3);
 ud.probe_view_mode = false;
 ud.currentProbe = 0; ud.ProbeColors = [1 1 1; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 1; .65 .4 .25; .7 .95 .3; .7 0 0; .5 0 .6; 1 .6 0]; 
-ud.ProbeColors = [ud.ProbeColors; distinguishable_colors(5,ud.ProbeColors)];
-ud.ProbeColor =  {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','red','purple','orange', 'ex1','ex2','ex3','ex4','ex5'};
+ud.ProbeColors = [ud.ProbeColors; distinguishable_colors(9,ud.ProbeColors)];
+ud.ProbeColor =  {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','red','purple','orange', 'ex1','ex2','ex3','ex4','ex5','ex6','ex7','ex8','ex9'};
 ud.getPoint_for_transform =false; ud.pointList_for_transform = zeros(0,2); ud.pointHands_for_transform = [];
 ud.current_pointList_for_transform = zeros(0,2); ud.curr_slice_num = 1;
 ud.clicked = false;
@@ -61,6 +61,7 @@ ud.im_annotation = squeeze(annotationVolume(ud.currentSlice,:,:));
 ud.atlas_boundaries = zeros(ud.ref_size,'uint16');
 ud.offset_map = zeros(ud.ref_size);
 ud.loaded = 0;
+ud.autoAP = 0;
 
 % create functions needed to interact with the figure
 set(ud.im, 'ButtonDownFcn', @(f,k)atlasClickCallback(f, k, slice_figure, save_location));
@@ -100,6 +101,7 @@ fprintf(1, 'l: load transform for current slice; press again to load probe point
 fprintf(1, 's: save current probe \n');
 fprintf(1, 'd: delete most recent probe point or all transform points \n');
 fprintf(1, 'w: enable/disable probe viewer mode for current probe  \n');
+fprintf(1, 'u: enable/disable automatic AP update \n');
 
 fprintf(1, '\n Viewing modes: \n');
 fprintf(1, 'o: toggle overlay of current region extent \n');
@@ -351,7 +353,16 @@ switch key_letter
         else % return to image
             set(ud.im, 'CData', ud.curr_im)
         end
-        
+    
+% u -- toggle automatic computing AP
+    case 'u'
+        ud.autoAP = ~ud.autoAP;
+        if ud.autoAP
+            disp('automatic computing AP on!');
+        else
+            disp('automatic computing AP off!');
+        end
+                    
 % v -- toggle viewing of Color Atlas        
     case 'v' 
         ud.viewColorAtlas = ~ud.viewColorAtlas;
@@ -488,6 +499,7 @@ switch key_letter
         ud.pointList = probe_point_list; ud.pointHands = probe_hands_list;
         ud.currentProbe = new_num_probes;
         end
+
  % s -- save probe trajectory and points of each probe per histology image (and associated histology name/number)     
     case 's'
         pointList.pointList = ud.pointList;
@@ -770,6 +782,8 @@ elseif ud.scrollMode == 3
     end        
 end  
 % Automatically compute AP
+if ud.autoAP
+    if evt.VerticalScrollCount < 0
 try
     if ud.slice_shift || ud.slice_at_shift_start ~= ud_slice.slice_num
         sliceMinus1_name = ud_slice.processed_image_names{(ud.slice_at_shift_start+ud.slice_shift-1)}(1:end-4);
@@ -786,6 +800,8 @@ try
     ud.sliceMinus2 = transformMinus2_data.allen_location{1};
     ud.currentSlice = ud.sliceMinus1 + ud.sliceMinus1 - ud.sliceMinus2;
 catch
+end
+    elseif evt.VerticalScrollCount > 0
     try
         if ud.slice_shift || ud.slice_at_shift_start ~= ud_slice.slice_num
             slicePlus1_name = ud_slice.processed_image_names{(ud.slice_at_shift_start+ud.slice_shift+1)}(1:end-4);
@@ -802,6 +818,7 @@ catch
         ud.slicePlus2 = transformPlus2_data.allen_location{1};
         ud.currentSlice = ud.slicePlus1 + ud.slicePlus1 - ud.slicePlus2;
     catch
+    end
     end
 end
 % update coordinates at the top
