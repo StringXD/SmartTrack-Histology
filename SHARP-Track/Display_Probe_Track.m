@@ -98,7 +98,7 @@ end
 % Auto distinguishable colors
 
 if length(probes) > 11
-    ProbeColors = [ProbeColors; distinguishable_colors(5,ProbeColors)];
+    ProbeColors = [ProbeColors; distinguishable_colors(9,ProbeColors)];
 end
 
 
