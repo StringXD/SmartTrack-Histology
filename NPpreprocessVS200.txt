@@ -1,3 +1,4 @@
+setBatchMode(true);
 input = getDirectory("Choose the Source Directory");
 listDirs = getFileList(input);
 for (i=0; i<listDirs.length; i++) {
