@@ -29,7 +29,6 @@ for i=1:length(supool)
     if ismember(supool(i),done)
         continue
     end
-
     folder=deblank(path_list{supool(i)});
     currMid = midList(contains(pathFullList,folder));
     currTid = tidList(contains(pathFullList,folder));
@@ -52,7 +51,7 @@ for i=1:length(supool)
         catch
             disp('track id exceed track number');
             error_list(end+1,:) = {folder,4};
-            continue
+            continue;
         end
         % get line of best fit through points
         % m is the mean value of each dimension; p is the eigenvector for largest eigenvalue
@@ -60,7 +59,7 @@ for i=1:length(supool)
         if isnan(m(1))
             disp('no points found current probe')
             error_list(end+1,:) = {folder,3};
-            continue
+            continue;
         end
         % ensure proper orientation: want 0 at the top of the brain and positive distance goes down into the brain
         if p(2)<0
@@ -86,10 +85,10 @@ for i=1:length(supool)
             coord(startsWith(path_list,folder),:) = dest;
         catch
             disp('SU number do not match');
-            error_list(end+1,:) = {folder,1};
+            error_list(end+1,:) = {folder,2};
             continue;
         end
-        done = [done;startsWith(path_list,folder)];
+        done = [done;find(startsWith(path_list,folder))];
     else
         disp('Undefined track');
         error_list(end+1,:) = {folder,1};
