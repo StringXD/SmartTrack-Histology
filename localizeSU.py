@@ -27,6 +27,7 @@ def getMetaInfo():
             "track_id",
             "implanting_date",
             "side",
+            "depth",
         ]
     ]
     return infoL
@@ -99,39 +100,46 @@ def imecNo2side(who_did, date, imecNo, mid):
     return "X"
 
 
-def getTrackID(infoL, mice_id, date, imecNo, who_did):
-    tid = infoL.loc[
+def getTrackInfo(infoL, mice_id, date, imecNo, who_did):
+    tinfo = infoL.loc[
         (infoL["mouse_id"] == mice_id)
         & (infoL["implanting_date"] == "20" + date)
         & (infoL["side"] == imecNo2side(who_did, date, imecNo, mice_id)),
-        ["track_id"],
+        ["track_id","depth"],
     ]
-    if len(tid):
-        return tid.iat[0,0]
+    if len(tinfo):
+        return (tinfo.iat[0,0],tinfo.iat[0,1])
     else:
-        return 0
-     
+        return (0,0)
+    
 
 
 if __name__ == "__main__":
     infoL = getMetaInfo()
 
     paths = []
+    mids = []
     tids = []
+    depths = []
     for path in traverse(r"F:\recordingDataOld\DataSum"):
         print(path)
         (bs_id, time_s, who_did) = get_bsid_duration_who(path)
         (mice_id, date, imec_no) = get_miceid_date_imecno(path)
-        tid = getTrackID(infoL, mice_id, date, imec_no, who_did)
+        (tid,depth) = getTrackInfo(infoL, mice_id, date, imec_no, who_did)
+        print(mice_id)
         print(tid)
         paths.append(path)
+        mids.append(mice_id)
         tids.append(tid)
+        depths.append(depth)
 
     os.chdir(r"E:\prJ\neuropixels\histology location analysis")
     f = h5py.File("path2tid.hdf5", "w")
     string_dt = h5py.special_dtype(vlen=str)
     d1 = f.create_dataset("/path",data=np.array(paths,dtype=object),dtype=string_dt)
-    d2 = f.create_dataset("/tid", data=np.array(tids),dtype=int)
+    d2 = f.create_dataset("/mid", data=np.array(list(map(int,mids))),dtype=int)
+    d3 = f.create_dataset("/tid", data=np.array(tids),dtype=int)
+    d4 = f.create_dataset("/depth", data=np.array(depths),dtype=int)
     f.close()
 
 
