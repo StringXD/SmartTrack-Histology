@@ -2,6 +2,7 @@
 
 cid_list=h5read('transient_6.hdf5','/cluster_id');
 path_list=h5read('transient_6.hdf5','/path');
+%reg_list=h5read('transient_6.hdf5','/reg'); % positive control
 
 pathFullList = h5read('path2tid.hdf5','/path');
 midList = h5read('path2tid.hdf5','/mid');
@@ -80,7 +81,7 @@ for i=1:length(supool)
                 end
             end
         end
-        dest = [m(1)+p(1)*realDepth/10,m(3)+p(3)*realDepth/10,m(2)+p(2)*realDepth/10];
+        dest = [m(1)+p(1)*realDepth/10,m(2)+p(2)*realDepth/10,m(3)+p(3)*realDepth/10];
         try
             coord(startsWith(path_list,folder),:) = dest;
         catch
@@ -96,4 +97,24 @@ for i=1:length(supool)
     end
 end
  save('E:\prJ\neuropixels\histology location analysis\sucoords.mat','coord','-v7.3');       
+
+ 
+%% test
+
+% acryms = cell(32390,1);
+% for i = 1:32390
+%     x = coord(i,1);
+%     y = coord(i,2);
+%     z = coord(i,3);
+%     if isnan(x)
+%         continue;
+%     end
+%     if x>0 && x<=size(av,1) &&...
+%        y>0 && y<=size(av,2) &&...
+%        z>0 && z<=size(av,3)
+%         ann = av(ceil(x), ceil(y), ceil(z));
+%         acryms{i} = st.acronym{ann};
+%     end
+% end
+% t = [acryms,reg_list];
 
