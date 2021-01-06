@@ -130,7 +130,8 @@ mnss = cell2mat(mns)';
 groups = string(num2cell(mnss(3,:)*0.5));
 [p,tbl,stats] = anova1(mnss(2,:),groups);    
 
-
+%% cross-correlation
+[R,P] = corrcoef([0.5:0.5:3]-0.25,mmn(1:6));
 
 
 
