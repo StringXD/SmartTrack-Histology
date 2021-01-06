@@ -1,4 +1,6 @@
-# SmartTrack Histology & fCellAssembly
+# SmartTrack Histology & [fCellAssembly](https://github.com/StringXD/fCellAssembly)
+
+* This README only introduce histology part, for electrophysiology analysis in fCellAssembly, see [https://github.com/StringXD/fCellAssembly](https://github.com/StringXD/fCellAssembly).
 
 ## What does it do ?
 
@@ -18,7 +20,7 @@ We care about how many brain areas does the designed track go through and what t
 
 This feature is used when there is difficulty both differentiating different brain areas when registration and picking ROIs after registration. In this condition, user can use two set of images, one for registration, the other for picking ROIs.
 
-** * Note this two set of images must be identical except color contrast**
+* Note this two set of images must be identical except color contrast
 
 ## And some optomization
 
