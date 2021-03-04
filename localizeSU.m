@@ -1,15 +1,15 @@
 % localize the neuron
-
+% load neuron ID, file path
 cid_list=h5read('transient_6.hdf5','/cluster_id');
 path_list=h5read('transient_6.hdf5','/path');
-%reg_list=h5read('transient_6.hdf5','/reg'); % positive control
-
+% reg_list=h5read('transient_6.hdf5','/reg'); % positive control
+% path, mice id, track id, depth
 pathFullList = h5read('path2tid.hdf5','/path');
 midList = h5read('path2tid.hdf5','/mid');
 tidList = h5read('path2tid.hdf5','/tid');
 depthList = h5read('path2tid.hdf5','/depth');
 
-
+% process file one by one
 supool=1:length(cid_list);
 
 done=[];
@@ -24,7 +24,7 @@ if ~exist('av','var') || ~exist('st','var')
     av = readNPY(annotation_volume_location);
     st = loadStructureTree(structure_tree_location);
 end
-
+% do not reload the same file
 prevMid = 0;
 for i=1:length(supool)
     if ismember(supool(i),done)
@@ -34,20 +34,28 @@ for i=1:length(supool)
     currMid = midList(contains(pathFullList,folder));
     currTid = tidList(contains(pathFullList,folder));
     depth = depthList(contains(pathFullList,folder));
+    
     if ~isempty(currMid) && isfile(fullfile('H:\NP histology\probe_points',sprintf('%d.mat',currMid))) && currTid>0 
         if currMid ~= prevMid
+            % load histology landmarks
             load(fullfile('H:\NP histology\probe_points',sprintf('%d.mat',currMid)));
             prevMid = currMid;
         end
         cIds = cid_list(startsWith(path_list,folder));
+        % load clusterinfo, which contains depth information correspond to su
         fid = fopen(fullfile(pathFullList{contains(pathFullList,folder)},'cluster_info.tsv'));
         T = textscan(fid,'%d %f %f %s %f %d %f %s %s %d %d', 'HeaderLines', 1); 
         fclose(fid);
+        % depth
         dist2TipList = T{7};
+        % ID
         cInfoId = T{1};
+        % screen matched su data
         [~,~,cidx] = intersect(double(cIds),double(cInfoId),'stable');
+        % calculate depth relative to brain surface
         realDepth = double(depth) - dist2TipList(cidx);
         try
+            % load landmarks
             curr_probePoints = pointList.pointList{currTid,1}(:, [3 2 1]);
         catch
             disp('track id exceed track number');
@@ -81,6 +89,7 @@ for i=1:length(supool)
                 end
             end
         end
+        % coordinates
         dest = [m(1)+p(1)*realDepth/10,m(2)+p(2)*realDepth/10,m(3)+p(3)*realDepth/10];
         try
             coord(startsWith(path_list,folder),:) = dest;
