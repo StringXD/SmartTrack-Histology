@@ -34,6 +34,7 @@ def getMetaInfo():
 
 
 def get_miceid_date_imecno(path):
+    # use regexp to extract data used for ensuring trackID afterwards
     dateA = re.compile("((19|20)\\d\\d\\d\\d)\\D")
     imecNo = re.compile("imec(\\d)")
     miceId = re.compile("[M_\\\\](\\d{2})_")
