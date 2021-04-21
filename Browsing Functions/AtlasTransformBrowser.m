@@ -24,7 +24,7 @@ ud.bregma = allenCCFbregma;
 ud.currentSlice = ud.bregma(1); 
 ud.currentAngle = zeros(2,1);
 ud.scrollMode = 0;
-
+ud.transform_type_id = 0;
 ud.transform_type = 'projective'; %can change to 'affine' or 'pwl'
 
 ud.oldContour = [];
@@ -94,6 +94,7 @@ fprintf(1, 'scroll: move between slices \n');
 fprintf(1, '\n Registration: \n');
 fprintf(1, 't: toggle mode where clicks are logged for transform \n');
 fprintf(1, 'h: toggle overlay of current histology slice \n');
+fprintf(1, 'f: toggle transform type \n');
 fprintf(1, 'p: toggle mode where clicks are logged for probe or switch probes \n');
 fprintf(1, 'n: add a new probe \n');
 fprintf(1, 'x: save transform and current atlas location \n');
@@ -149,7 +150,22 @@ switch key_letter
             cellfun(@(x)set(x, 'Visible', 'off'), ud.gridlines);
         elseif strcmp(get(ud.gridlines{1}, 'Visible'), 'off');
             cellfun(@(x)set(x, 'Visible', 'on'), ud.gridlines);
-        end  
+        end 
+% f -- toggle tranform type for registering
+    case 'f'
+        ud.transform_type_id = ud.transform_type_id + 1;
+        if ud.transform_type_id > 3
+            ud.transform_type_id = 0;
+        end
+        switch ud.transform_type_id
+            case 0
+                ud.transform_type = 'projective';
+            case 1
+                ud.transform_type = 'affine';
+            case 2
+                ud.transform_type = 'pwl';
+        end
+        disp(['transform type: ',ud.transform_type]);
 % p -- toggle mode to register clicks as probe points        
     case 'p' 
         ud.probe_view_mode = 0;
